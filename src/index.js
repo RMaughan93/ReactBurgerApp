@@ -22,11 +22,12 @@ const logger = store => {
 const store = createStore(reducer, applyMiddleware(logger));
 
 const app = (
-  <BrowserRouter>
-    <Provider store={store}>
+  <Provider store={store}>
+    <BrowserRouter>
       <App />
-    </Provider>
-  </BrowserRouter>
+    </BrowserRouter>
+  </Provider>
+
 );
 
 

@@ -4,9 +4,9 @@ import classes from './ContactData.css';
 import axios from '../../../axios-orders';
 import Spinner from '../../../Components/UI/Spinner/Spinner';
 import Input from '../../../Components/UI/Input/Input';
+import { connect } from 'react-redux';
 
-
-export default class ContactData extends React.Component {
+class ContactData extends React.Component {
   state = {
     orderForm: {
 
@@ -20,7 +20,8 @@ export default class ContactData extends React.Component {
         validation: {
           required: true
         },
-        valid: false
+        valid: false,
+        touched: false
       },
       street: {
         elementType: 'input',
@@ -32,7 +33,8 @@ export default class ContactData extends React.Component {
         validation: {
           required: true
         },
-        valid: false
+        valid: false,
+        touched: false
       },
       zipCode: {
         elementType: 'input',
@@ -46,7 +48,8 @@ export default class ContactData extends React.Component {
           minLength: 5,
           maxLength: 5
         },
-        valid: false
+        valid: false,
+        touched: false
       },
       country: {
         elementType: 'input',
@@ -58,7 +61,8 @@ export default class ContactData extends React.Component {
         validation: {
           required: true
         },
-        valid: false
+        valid: false,
+        touched: false
       },
       email: {
         elementType: 'input',
@@ -70,7 +74,8 @@ export default class ContactData extends React.Component {
         validation: {
           required: true
         },
-        valid: false
+        valid: false,
+        touched: false
       },
       deliveryMethod: {
         elementType: 'select',
@@ -80,10 +85,13 @@ export default class ContactData extends React.Component {
             { value: 'cheapest', displayValue: 'Cheapest' }
           ]
         },
-        value: ''
+        value: 'fastest',
+        validation: {},
+        valid: true
       }
     },
-    loading: false
+    loading: false,
+    formIsValid: false
   }
 
   orderHandler = (event) => {
@@ -94,7 +102,7 @@ export default class ContactData extends React.Component {
       formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
     }
     const order = {
-      ingredients: this.props.ingredients,
+      ingredients: this.props.ings,
       price: this.props.price,
       orderData: formData
 
@@ -135,9 +143,16 @@ export default class ContactData extends React.Component {
       ...updatedOrderForm[inputIdentifier]
     }
     updatedFormElement.value = event.target.value;
-    updatedFormElement.valid = this.checkValidity(updatedFormElement.value, updatedFormElement.validation)
+    updatedFormElement.valid = this.checkValidity(updatedFormElement.value, updatedFormElement.validation);
+    updatedFormElement.touched = true;
     updatedOrderForm[inputIdentifier] = updatedFormElement;
-    this.setState({ orderForm: updatedOrderForm });
+
+    let formIsValid = true;
+    for (let inputIdentifier in updatedOrderForm) {
+      formIsValid = updatedOrderForm[inputIdentifier].valid && formIsValid;
+    }
+
+    this.setState({ orderForm: updatedOrderForm, formIsValid: formIsValid });
   }
 
   render() {
@@ -156,11 +171,14 @@ export default class ContactData extends React.Component {
           elementConfig={formElement.config.elementConfig}
           value={formElement.config.value}
           invalid={!formElement.config.valid}
+          shouldValidate={formElement.config.validation}
+          touched={formElement.config.touched}
           changed={(event) => this.inputChangedHandler(event, formElement.id)} />
       ))}
       <Button
         btnType="Success"
-        clicked={this.orderHandler}>ORDER</Button>
+        clicked={this.orderHandler}
+        disabled={!this.state.formIsValid}>ORDER</Button>
     </form>);
     if (this.state.loading) {
       form = <Spinner />
@@ -173,3 +191,13 @@ export default class ContactData extends React.Component {
     );
   }
 }
+
+
+const mapStateToProps = state => {
+  return {
+    ings: state.ingredients,
+    price: state.totalPrice
+  }
+}
+
+export default connect(mapStateToProps)(ContactData);
